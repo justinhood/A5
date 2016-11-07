@@ -17,6 +17,7 @@
  *  Notes:
  *
  */
+#include <GL/glew.h>
 
 #ifdef __APPLE__
 	#include <GLUT/glut.h>
@@ -27,6 +28,7 @@
 	#include <GL/gl.h>
 	#include <GL/glu.h>
 #endif
+#include <SOIL/SOIL.h>
 
 #include <math.h>
 #include <stdio.h>
@@ -54,7 +56,8 @@ enum LightType { POINT_LIGHT, DIRECTIONAL_LIGHT, SPOT_LIGHT };		// our types of 
 LightType lightType = POINT_LIGHT;				// current light type
 
 Object *obj;                                // actual object
-
+//MY GLOBALS
+GLuint skyBoxTex[6];
 // END GLOBAL VARIABLES ///////////////////////////////////////////////////////
 
 //
@@ -73,6 +76,104 @@ void computeArcballPosition(float theta, float phi, float radius,
     z = radius * -cosf(theta)*sinf(phi);
 }
 
+int initBox(){
+	int status=1;
+	char *tgafiles[6]={"./ame_darkgloom/darkgloom_rt.tga","./ame_darkgloom/darkgloom_lf.tga","./ame_darkgloom/darkgloom_up.tga","./ame_darkgloom/darkgloom_dn.tga","./ame_darkgloom/darkgloom_ft.tga","./ame_darkgloom/darkgloom_bk.tga"};
+for(int i=0; i<6; i++){
+	skyBoxTex[i]=SOIL_load_OGL_texture(tgafiles[i], SOIL_LOAD_AUTO,SOIL_CREATE_NEW_ID,SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT);
+	printf("skyBoxTex[%d]: %d\n",i,skyBoxTex[i]);
+	if(skyBoxTex[i]==0){
+		status=0;
+	}
+	glBindTexture(GL_TEXTURE_2D, skyBoxTex[i]);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+}
+return status;
+}
+
+void drawSkyBox(){
+	glPushMatrix();
+	glEnable(GL_TEXTURE_2D);	
+	glBindTexture(GL_TEXTURE_2D,skyBoxTex[4]);
+glBegin(GL_QUADS); 
+// Front Face 
+// Bottom Left Of The Texture and Quad 
+glTexCoord2f(0.0f, 0.0f); glVertex3f(cameraX-50, cameraY-50, cameraZ-50); 
+// Bottom Right Of The Texture and Quad 
+glTexCoord2f(1.0f, 0.0f); glVertex3f(cameraX+50, cameraY-50, cameraZ-50); 
+// Top Right Of The Texture and Quad 
+glTexCoord2f(1.0f, 1.0f); glVertex3f(cameraX+50, cameraY+50, cameraZ-50); 
+// Top Left Of The Texture and Quad 
+glTexCoord2f(0.0f, 1.0f); glVertex3f(cameraX-50, cameraY+50, cameraZ-50); 
+glEnd(); 
+
+glBindTexture(GL_TEXTURE_2D,skyBoxTex[5]);
+glBegin(GL_QUADS); 
+// Back Face 
+// Bottom Right Of The Texture and Quad 
+glTexCoord2f(0.0f, 0.0f); glVertex3f(cameraX+50, cameraY-50, cameraZ+50); 
+// Top Right Of The Texture and Quad 
+glTexCoord2f(0.0f, 1.0f); glVertex3f(cameraX+50, cameraY+50, cameraZ+50); 
+// Top Left Of The Texture and Quad 
+glTexCoord2f(1.0f, 1.0f); glVertex3f(cameraX-50, cameraY+50, cameraZ+50); 
+// Bottom Left Of The Texture and Quad 
+glTexCoord2f(1.0f, 0.0f); glVertex3f(cameraX-50, cameraY-50, cameraZ+50); 
+glEnd(); 
+
+glBindTexture(GL_TEXTURE_2D,skyBoxTex[2]);
+glBegin(GL_QUADS); 
+// Top Face 
+// Top Left Of The Texture and Quad 
+glTexCoord2f(0.0f, 0.0f); glVertex3f(cameraX-50, cameraY+50, cameraZ+50); 
+// Bottom Left Of The Texture and Quad 
+glTexCoord2f(1.0f, 0.0f); glVertex3f(cameraX-50, cameraY+50, cameraZ-50); 
+// Bottom Right Of The Texture and Quad 
+glTexCoord2f(1.0f, 1.0f); glVertex3f(cameraX+50, cameraY+50, cameraZ-50); 
+// Top Right Of The Texture and Quad 
+glTexCoord2f(0.0f, 1.0f); glVertex3f(cameraX+50, cameraY+50, cameraZ+50); 
+glEnd(); 
+
+glBindTexture(GL_TEXTURE_2D,skyBoxTex[3]);
+glBegin(GL_QUADS); 
+// Bottom Face 
+// Top Right Of The Texture and Quad 
+glTexCoord2f(1.0f, 1.0f); glVertex3f(cameraX+50, cameraY-50, cameraZ-50); 
+// Top Left Of The Texture and Quad 
+glTexCoord2f(0.0f, 1.0f); glVertex3f(cameraX-50, cameraY-50, cameraZ-50); 
+// Bottom Left Of The Texture and Quad 
+glTexCoord2f(0.0f, 0.0f); glVertex3f(cameraX-50, cameraY-50, cameraZ+50); 
+// Bottom Right Of The Texture and Quad 
+glTexCoord2f(1.0f, 0.0f); glVertex3f(cameraX+50, cameraY-50, cameraZ+50); 
+glEnd(); 
+
+glBindTexture(GL_TEXTURE_2D,skyBoxTex[1]);
+glBegin(GL_QUADS); 
+// Right face 
+// Bottom Right Of The Texture and Quad 
+glTexCoord2f(1.0f, 0.0f); glVertex3f(cameraX+50, cameraY-50, cameraZ+50); 
+// Top Right Of The Texture and Quad 
+glTexCoord2f(1.0f, 1.0f); glVertex3f(cameraX+50, cameraY+50, cameraZ+50); 
+// Top Left Of The Texture and Quad 
+glTexCoord2f(0.0f, 1.0f); glVertex3f(cameraX+50, cameraY+50, cameraZ-50); 
+// Bottom Left Of The Texture and Quad 
+glTexCoord2f(0.0f, 0.0f); glVertex3f(cameraX+50, cameraY-50, cameraZ-50); 
+glEnd(); 
+
+glBindTexture(GL_TEXTURE_2D,skyBoxTex[0]);
+glBegin(GL_QUADS); 
+// Left Face 
+// Bottom Left Of The Texture and Quad 
+glTexCoord2f(1.0f, 0.0f); glVertex3f(cameraX-50, cameraY-50, cameraZ-50); 
+// Bottom Right Of The Texture and Quad 
+glTexCoord2f(0.0f, 0.0f); glVertex3f(cameraX-50, cameraY-50, cameraZ+50); 
+// Top Right Of The Texture and Quad 
+glTexCoord2f(0.0f, 1.0f); glVertex3f(cameraX-50, cameraY+50, cameraZ+50); 
+// Top Left Of The Texture and Quad 
+glTexCoord2f(1.0f, 1.0f); glVertex3f(cameraX-50, cameraY+50, cameraZ-50); 
+glEnd(); 
+glPopMatrix();
+}
 //
 //  void drawGrid()
 //
@@ -134,7 +235,7 @@ void initScene() {
     glEnable(GL_DEPTH_TEST);
 
 	// enable lighting
-	glEnable(GL_LIGHTING);
+//	glEnable(GL_LIGHTING);
 	// enable light 0
     glEnable(GL_LIGHT0);
 
@@ -203,11 +304,33 @@ void renderScene(void) {
     }; glPopMatrix();
 
     //move the grid down a touch so that it doesn't overlap with the axes
-    glPushMatrix();
+    /*glPushMatrix();
         glTranslatef(0,-1,0);
         drawGrid();
-    glPopMatrix();
+    glPopMatrix();*/
+	drawSkyBox();
+	/*glPushMatrix();
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, skyBoxTex[0]);
+	glBegin(GL_QUADS);
 
+                                glTexCoord2f (0.0, 0.0);
+                                glNormal3f(0,0,1);
+                                glVertex3f(-1,-1,0);
+
+                                glTexCoord2f (1.0, 0.0);
+                                glNormal3f(0,0,1);
+                                glVertex3f(1,-1,0);
+
+                                glTexCoord2f (1.0, 1.0);
+                                glNormal3f(0,0,1);
+                                glVertex3f(1,1,0);
+
+                                glTexCoord2f (0.0, 1.0);
+                                glNormal3f(0,0,1);
+                                glVertex3f(-1,1,0);
+	glEnd();
+	glPopMatrix();*/
     //push the back buffer to the screen
     glutSwapBuffers();
 }
@@ -433,6 +556,19 @@ int main(int argc, char **argv) {
 
     //do some basic OpenGL setup to initialize our lights
     initScene();
+    initBox();
+
+   //MAKE DA BOX
+	/*skyBoxTex=SOIL_load_OGL_cubemap(
+	"./ame_darkgloom/darkgloom_rt.tga",
+	"./ame_darkgloom/darkgloom_lf.tga",
+	"./ame_darkgloom/darkgloom_up.tga",
+	"./ame_darkgloom/darkgloom_dn.tga",
+	"./ame_darkgloom/darkgloom_ft.tga",
+	"./ame_darkgloom/darkgloom_bk.tga",
+	SOIL_LOAD_RGB,
+	SOIL_CREATE_NEW_ID,
+	SOIL_FLAG_MIPMAPS);*/
 
 	// register our timer function
     glutTimerFunc((unsigned int)(1000.0 / 60.0), myTimer, 0);

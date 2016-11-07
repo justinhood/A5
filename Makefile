@@ -24,8 +24,8 @@
 TARGET = modelLoader
 OBJECTS = main.o Object.o Material.o Point.o Vector.o PointBase.o Face.o Matrix.o
 
-LOCAL_INC_PATH = /Users/jpaone/Desktop/include
-LOCAL_LIB_PATH = /Users/jpaone/Desktop/lib
+LOCAL_INC_PATH = ./include
+LOCAL_LIB_PATH = ./lib
 LOCAL_BIN_PATH = /Users/jpaone/Desktop/bin
 
 BUILDING_IN_LAB = 1
